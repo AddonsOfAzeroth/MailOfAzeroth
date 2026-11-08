@@ -34,6 +34,10 @@ function C.Build(p)
 	p:Note(L["At a mailbox a panel shows which reagents can go to which of your characters. Attach, then Send: every mail takes your two clicks, nothing is sent by itself."])
 	p:Check(L["Reagents to the character with the matching profession"], L["The highest skill wins. What you use yourself stays with you."], cat("profession"))
 	p:Check(L["Trade goods nobody needs to your bank alt"], nil, cat("bank"))
+	p:Check(L["Show the panel at the mailbox"], L["Also with the minimap button."], function() return MoA.db.showPanel end,
+		function(v) MoA.db.showPanel = v and true or false MoA.Mailbox:PaintMinimap() end)
+	p:Check(L["Minimap button"], L["Takes effect after /reload."], function() return not MoA.db.minimap.hide end,
+		function(v) MoA.db.minimap.hide = not v end)
 	p:Check(L["This character is my bank alt"], nil, function()
 		local a = MoA.db.alts[MoA.Me()]
 		return a and a.bank

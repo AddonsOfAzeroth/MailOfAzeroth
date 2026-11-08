@@ -19,6 +19,8 @@ local accountDefaults = {
 	fontOutline = false,
 	alts = {},          -- ["Name-Realm"] = { class, faction, realm, level, profs = { [skillLine] = rank }, bank = bool }
 	rules = {},         -- [itemID] = "Name-Realm": always send this item there (or "keep")
+	showPanel = true,   -- the panel next to the mailbox (minimap button toggles it)
+	minimap = { angle = 200, hide = false },
 	categories = {      -- what goes out automatically (as a suggestion) per kind of reagent
 		profession = true, -- to the alt with the matching profession
 		bank = true,       -- trade goods nobody needs to the bank alt

@@ -98,6 +98,22 @@ function M:Build()
 	local title = S:Font(f, 13)
 	title:SetPoint("TOPLEFT", PAD, -7)
 	title:SetText("Mail of Azeroth")
+	-- close: hidden until the next mailbox (the minimap button turns it off for good)
+	local close = CreateFrame("Button", nil, f)
+	close:SetSize(18, 18)
+	close:SetPoint("TOPRIGHT", -3, -3)
+	close.text = S:Font(close, 13)
+	close.text:SetPoint("CENTER")
+	close.text:SetText("x")
+	close.text:SetTextColor(unpack(S.colors.muted))
+	close:SetScript("OnClick", function() f:Hide() end)
+	close:SetScript("OnEnter", function(b)
+		b.text:SetTextColor(1, 1, 1)
+		GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
+		GameTooltip:SetText(L["Hide until the next mailbox. The minimap button turns the panel off for good."], 1, 1, 1, 1, true)
+		GameTooltip:Show()
+	end)
+	close:SetScript("OnLeave", function(b) b.text:SetTextColor(unpack(S.colors.muted)) GameTooltip:Hide() end)
 	title:SetTextColor(unpack(S.colors.accent))
 	f.note = S:Font(f, 10)
 	f.note:SetPoint("TOPLEFT", PAD, -24)
@@ -195,17 +211,89 @@ function M:Refresh()
 	self:Render()
 end
 
+-- the panel on or off (also right away when you stand at a mailbox)
+function M:TogglePanel()
+	MoA.db.showPanel = not MoA.db.showPanel
+	MoA:Print(MoA.db.showPanel and L["The mail panel shows at the mailbox."] or L["The mail panel is off. Click the minimap button to turn it on."])
+	if self.atMailbox and MoA.db.showPanel then self.frame:Show() self:Refresh() else self.frame:Hide() end
+	self:PaintMinimap()
+end
+
+function M:PaintMinimap()
+	if self.mm then self.mm.icon:SetDesaturated(not MoA.db.showPanel) end
+end
+
+-- a small button on the minimap edge: click = panel on/off, right-click = settings, drag = move it
+function M:MinimapButton()
+	if MoA.db.minimap.hide or not Minimap then return end
+	local b = CreateFrame("Button", "MailOfAzerothMinimapButton", Minimap)
+	b:SetSize(31, 31)
+	b:SetFrameStrata("MEDIUM")
+	b:SetFrameLevel(8)
+	b:RegisterForClicks("AnyUp")
+	b:RegisterForDrag("LeftButton")
+	b:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+	local bg = b:CreateTexture(nil, "BACKGROUND")
+	bg:SetSize(20, 20)
+	bg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
+	bg:SetPoint("TOPLEFT", 7, -5)
+	b.icon = b:CreateTexture(nil, "ARTWORK")
+	b.icon:SetSize(18, 18)
+	b.icon:SetTexture("Interface\\Icons\\INV_Letter_15")
+	b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+	b.icon:SetPoint("TOPLEFT", 7, -6)
+	local border = b:CreateTexture(nil, "OVERLAY")
+	border:SetSize(53, 53)
+	border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+	border:SetPoint("TOPLEFT")
+	local function place()
+		local a = math.rad(MoA.db.minimap.angle or 200)
+		local r = Minimap:GetWidth() / 2 + 5
+		b:ClearAllPoints()
+		b:SetPoint("CENTER", Minimap, "CENTER", math.cos(a) * r, math.sin(a) * r)
+	end
+	b:SetScript("OnDragStart", function(self)
+		self:SetScript("OnUpdate", function()
+			local mx, my = Minimap:GetCenter()
+			local cx, cy = GetCursorPosition()
+			local s = Minimap:GetEffectiveScale()
+			MoA.db.minimap.angle = math.deg(math.atan2(cy / s - my, cx / s - mx))
+			place()
+		end)
+	end)
+	b:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
+	b:SetScript("OnClick", function(_, button)
+		if button == "RightButton" then MoA:ToggleConfig() else M:TogglePanel() end
+	end)
+	b:SetScript("OnEnter", function(self)
+		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+		GameTooltip:AddLine("Mail of Azeroth")
+		GameTooltip:AddLine(MoA.db.showPanel and L["Panel at the mailbox: on"] or L["Panel at the mailbox: off"], 0.41, 0.8, 0.94)
+		GameTooltip:AddLine(L["Click: panel on/off"], 1, 1, 1)
+		GameTooltip:AddLine(L["Right-click: settings"], 1, 1, 1)
+		GameTooltip:Show()
+	end)
+	b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+	self.mm = b
+	place()
+	self:PaintMinimap()
+end
+
 function M:OnEnable()
 	self:Build()
 	MoA:On("MAIL_SHOW", function()
 		pending = nil
+		M.atMailbox = true
+		if not MoA.db.showPanel then return end
 		M.frame:Show()
 		M:Refresh()
 	end)
 	MoA:On("MAIL_CLOSED", function()
 		pending = nil
+		M.atMailbox = false
 		M.frame:Hide()
 	end)
+	self:MinimapButton()
 	MoA:On("MAIL_SEND_SUCCESS", function()
 		pending = nil
 		C_Timer.After(0.3, function() M:Refresh() end)
