@@ -1,0 +1,18 @@
+## Interface: 16001
+## Title: Mail of Azeroth
+## Notes: Send reagents to the alt with the matching profession, the rest to your bank alt. Every mail is your click.
+## Notes-nlNL: Stuur reagents naar de alt met het passende beroep, de rest naar je bank-alt. Elke mail is jouw klik.
+## Author: DinX
+## Version: 0.1.0
+## IconTexture: Interface\Icons\INV_Letter_15
+## SavedVariables: MailOfAzerothDB
+## SavedVariablesPerCharacter: MailOfAzerothCharDB
+## OptionalDeps: CastersOfAzeroth
+
+Core.lua
+Locale.lua
+Style.lua
+Alts.lua
+Rules.lua
+Mailbox.lua
+Config.lua
