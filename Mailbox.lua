@@ -295,11 +295,14 @@ function M:OnEnable()
 		M.frame:Show()
 		M:Refresh()
 	end)
-	MoA:On("MAIL_CLOSED", function()
+	local function closed()
 		pending = nil
 		M.atMailbox = false
 		M.frame:Hide()
-	end)
+	end
+	MoA:On("MAIL_CLOSED", closed)
+	-- the event does not always come: also when Blizzard's mail window closes
+	if MailFrame then MailFrame:HookScript("OnHide", closed) end
 	self:MinimapButton()
 	MoA:On("MAIL_SEND_SUCCESS", function()
 		pending = nil
