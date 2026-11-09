@@ -66,6 +66,20 @@ function R:Target(itemID, alts, mine)
 	end
 end
 
+-- which of your characters (or you) uses this item for a profession, or nil.
+-- Casters of Azeroth asks this before selling an item you marked as junk.
+function R:WhoUses(itemID)
+	local classID, sub = info(itemID)
+	local lines = classID == TRADE_GOODS and USES[sub]
+	if not lines then return end
+	local me = MoA.Me()
+	local mine = MoA.db.alts[me]
+	for _, line in ipairs(lines) do
+		if mine and mine.profs and mine.profs[line] then return me end
+	end
+	return bestFor(lines, MoA.Alts:Reachable())
+end
+
 local BAGS = { 0, 1, 2, 3, 4, 5 }
 
 -- what to send from your bags now: { [key] = { items = { {bag, slot, id, count, icon} }, stacks = n } }
