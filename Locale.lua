@@ -35,6 +35,10 @@ for k, v in pairs({
 	["Send"] = "Versturen",
 	["Attach"] = "Bijvoegen",
 	["Nothing to send."] = "Niets te versturen.",
+	["Your other characters are on another realm or faction: mail can't reach them from here."] = "Je andere karakters staan op een andere realm of factie: mail kan hen van hieruit niet bereiken.",
+	["other realm"] = "andere realm",
+	["other faction"] = "andere factie",
+	["you"] = "jij",
 	["Log in your other characters once, so Mail of Azeroth knows their professions."] = "Log je andere karakters één keer in, zodat Mail of Azeroth hun beroepen kent.",
 	["Attach, then Send: one mail per two clicks."] = "Bijvoegen, dan Versturen: één mail per twee klikken.",
 	-- settings

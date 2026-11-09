@@ -23,7 +23,10 @@ end
 local function altList()
 	local lines = {}
 	for key, a in pairs(MoA.db.alts) do
-		lines[#lines + 1] = key .. (a.bank and ("  |cffffd040(" .. L["bank alt"] .. ")|r") or "") .. "\n   " .. MoA.Alts:ProfessionText(a)
+		local _, why = MoA.Alts:CanReach(key, a)
+		local note = (why == "realm" and L["other realm"]) or (why == "faction" and L["other faction"]) or (why == "self" and L["you"]) or nil
+		lines[#lines + 1] = key .. (a.bank and ("  |cffffd040(" .. L["bank alt"] .. ")|r") or "")
+			.. (note and ("  |cff999999(" .. note .. ")|r") or "") .. "\n   " .. MoA.Alts:ProfessionText(a)
 	end
 	table.sort(lines)
 	return #lines > 0 and table.concat(lines, "\n") or L["No characters yet: log in each of them once."]

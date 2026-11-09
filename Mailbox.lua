@@ -191,12 +191,19 @@ function M:Render()
 	end
 	for i = n + 1, MAX_ROWS do f.rows[i]:Hide() end
 	if n == 0 then
-		f.note:SetText(next(MoA.Alts:Reachable()) and L["Nothing to send."]
-			or L["Log in your other characters once, so Mail of Azeroth knows their professions."])
+		local known = 0
+		for key in pairs(MoA.db.alts) do if key ~= MoA.Me() then known = known + 1 end end
+		if next(MoA.Alts:Reachable()) then
+			f.note:SetText(L["Nothing to send."])
+		elseif known > 0 then
+			f.note:SetText(L["Your other characters are on another realm or faction: mail can't reach them from here."])
+		else
+			f.note:SetText(L["Log in your other characters once, so Mail of Azeroth knows their professions."])
+		end
 	else
 		f.note:SetText(L["Attach, then Send: one mail per two clicks."])
 	end
-	f:SetHeight(n == 0 and 48 or (40 + n * (ROW_H + 2) + PAD))
+	f:SetHeight(n == 0 and math.max(48, 30 + f.note:GetStringHeight()) or (40 + n * (ROW_H + 2) + PAD))
 	f:ClearAllPoints()
 	if MailFrame then f:SetPoint("TOPLEFT", MailFrame, "TOPRIGHT", 4, 0) else f:SetPoint("CENTER") end
 end

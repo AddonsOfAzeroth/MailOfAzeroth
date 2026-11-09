@@ -53,7 +53,8 @@ function A:Update()
 	local a = MoA.db.alts[me] or {}
 	a.class = select(2, UnitClass("player"))
 	a.faction = UnitFactionGroup("player")
-	a.realm = realm
+	a.realm = realm -- on Forever: the surname (UnitFullName's second part)
+	a.server = GetRealmName and GetRealmName() or nil -- the real realm (Forever: one world with layers)
 	a.level = UnitLevel("player")
 	local profs = readProfessions()
 	if next(profs) then a.profs = profs end
@@ -62,13 +63,22 @@ function A:Update()
 	MoA:Fire("ALTS")
 end
 
--- your other characters that can get mail from this one (same realm and faction)
+-- can this character get mail from the one you play? (false, why) when not.
+-- Forever is one world (layers): only the faction counts. A character that was
+-- last seen on another real realm (other clients) does not.
+function A:CanReach(key, a)
+	if key == MoA.Me() then return false, "self" end
+	if a.faction ~= UnitFactionGroup("player") then return false, "faction" end
+	local here = GetRealmName and GetRealmName()
+	if a.server and here and a.server ~= here then return false, "realm" end
+	return true
+end
+
+-- your other characters that can get mail from this one (same faction)
 function A:Reachable()
-	local me, realm = MoA.Me()
-	local faction = UnitFactionGroup("player")
 	local out = {}
 	for key, a in pairs(MoA.db.alts) do
-		if key ~= me and a.realm == realm and a.faction == faction then out[key] = a end
+		if self:CanReach(key, a) then out[key] = a end
 	end
 	return out
 end
@@ -82,11 +92,9 @@ function A:ProfessionText(a)
 	return #parts > 0 and table.concat(parts, ", ") or L["no professions"]
 end
 
--- the name to type in the mail ("Name" on your own realm)
+-- the name to type in the mail: the full name ("Name-Surname" on Forever,
+-- where first names are not unique)
 function A.MailName(key)
-	local me, realm = MoA.Me()
-	local name, r = key:match("^(.-)%-(.*)$")
-	if name and r == realm then return name end
 	return key
 end
 
