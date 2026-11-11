@@ -10,6 +10,7 @@
 ## SavedVariablesPerCharacter: MailOfAzerothCharDB
 ## OptionalDeps: CastersOfAzeroth
 
+Hub.lua
 Core.lua
 Locale.lua
 Style.lua
@@ -17,3 +18,4 @@ Alts.lua
 Rules.lua
 Mailbox.lua
 Config.lua
+HubEntry.lua
